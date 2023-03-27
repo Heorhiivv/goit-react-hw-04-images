@@ -1,46 +1,43 @@
-import React, { Component } from 'react';
+import { useState } from 'react';
 import { toast } from 'react-toastify';
 
-class Searchbar extends Component {
-  state = {
-    searchQuery: '',
-  };
+const Searchbar = ({ onSubmit }) => {
+  const [searchQuery, setSearchQuery] = useState('');
 
-  onInputValueChange = e => {
-    this.setState({ searchQuery: e.currentTarget.value });
+  const onInputValueChange = e => {
+    setSearchQuery(e.currentTarget.value);
   };
-  onSearchFormSubmit = e => {
+  const onSearchFormSubmit = e => {
     e.preventDefault();
-    const { searchQuery } = this.state;
+
     if (searchQuery.trim() === '') {
       toast.warn('Enter word to search');
       return;
     }
-    this.props.onSubmit(searchQuery);
-    this.setState({ searchQuery: '' });
+    onSubmit(searchQuery);
+    setSearchQuery('');
   };
-  render() {
-    return (
-      <header className="Searchbar">
-        <form className="SearchForm" onSubmit={this.onSearchFormSubmit}>
-          <button type="submit" className="SearchForm-button">
-            <span className="SearchForm-button-label">Search</span>
-          </button>
 
-          <input
-            className="SearchForm-input"
-            type="text"
-            name="searchQuery"
-            value={this.state.searchQuery}
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-            onChange={this.onInputValueChange}
-          />
-        </form>
-      </header>
-    );
-  }
-}
+  return (
+    <header className="Searchbar">
+      <form className="SearchForm" onSubmit={onSearchFormSubmit}>
+        <button type="submit" className="SearchForm-button">
+          <span className="SearchForm-button-label">Search</span>
+        </button>
+
+        <input
+          className="SearchForm-input"
+          type="text"
+          name="searchQuery"
+          value={searchQuery}
+          autoComplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+          onChange={onInputValueChange}
+        />
+      </form>
+    </header>
+  );
+};
 
 export default Searchbar;

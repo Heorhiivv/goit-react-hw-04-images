@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useEffect, useState, Component } from 'react';
 
 import { Bars } from 'react-loader-spinner';
 import { ToastContainer } from 'react-toastify';
@@ -8,84 +8,74 @@ import { getImages } from './api-services/api-services';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import { LoadMoreBtn } from './Button/Button';
-import { height } from '@mui/system';
 
-export class App extends Component {
-  state = {
-    gallery: [],
-    serachQuery: '',
-    isLoading: false,
-    page: 1,
-    error: null,
-    largeImage: '',
-  };
+export const App = () => {
+  const [gallery, setGallery] = useState([]);
+  const [serachQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [error, setError] = useState(null);
+  const [largeImage, setLargeImage] = useState('');
 
-  async componentDidUpdate(prevProps, prevState) {
-    const { page } = this.state;
-    const prevQueryWord = prevState.serachQuery;
-    const newQueryWord = this.state.serachQuery;
-    try {
-      if (prevQueryWord !== newQueryWord) {
-        this.setState({ isLoading: true });
-        const newImages = await getImages(newQueryWord, page);
-        this.setState({ gallery: newImages, isLoading: false });
-      }
-      if (prevState.page !== page && prevQueryWord === newQueryWord) {
-        this.setState({ isLoading: true });
-        const newImages = await getImages(newQueryWord, page);
-        this.setState(prevState => ({
-          gallery: [...prevState.gallery, ...newImages],
-          isLoading: false,
-        }));
-      }
-      if (page !== 1) {
-        const { scrollTop, clientHeight } = document.documentElement;
-        window.scrollTo({
-          top: scrollTop + clientHeight - 170,
-          behavior: 'smooth',
-        });
-      }
-    } catch (error) {
-      this.setState({ error });
+  useEffect(() => {
+    if (serachQuery === '') {
+      return;
     }
-  }
+    const fetchImages = async () => {
+      try {
+        setIsLoading(true);
+        const newImages = await getImages(serachQuery, page);
+        setGallery(prevGallery => [...prevGallery, ...newImages]);
+        setIsLoading(false);
+      } catch (error) {
+        setError(error);
+      }
+    };
+    fetchImages();
+  }, [serachQuery, page]);
 
-  onSearchFormSubmit = serachQuery => {
-    this.setState({ serachQuery: serachQuery, page: 1, gallery: [] });
+  useEffect(() => {
+    if (page > 1) {
+      const { scrollTop, clientHeight } = window.document.documentElement;
+      window.scrollTo({
+        top: scrollTop + clientHeight - 170,
+        behavior: 'smooth',
+      });
+    }
+  });
+
+  const onSearchFormSubmit = serachQuery => {
+    setSearchQuery(serachQuery);
+    setPage(1);
+    setGallery([]);
   };
 
-  onLoadMoreBtnClick = async () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+  const onLoadMoreBtnClick = () => {
+    setPage(prevPage => prevPage + 1);
   };
 
-  render() {
-    const { serachQuery, gallery, isLoading } = this.state;
-    return (
-      <>
-        <Searchbar onSubmit={this.onSearchFormSubmit} />
-        <ImageGallery images={gallery} />
+  return (
+    <>
+      <Searchbar onSubmit={onSearchFormSubmit} />
+      <ImageGallery images={gallery} />
 
-        {gallery.length > 0 && !isLoading && (
-          <LoadMoreBtn
-            loadMore={this.onLoadMoreBtnClick}
-            isSubmitting={isLoading}
+      {gallery.length > 0 && !isLoading && (
+        <LoadMoreBtn loadMore={onLoadMoreBtnClick} isSubmitting={isLoading} />
+      )}
+      {isLoading && (
+        <div className="Loader">
+          <Bars
+            height="80"
+            width="80"
+            color="#4fa94d"
+            ariaLabel="bars-loading"
+            wrapperStyle={{}}
+            wrapperClass=""
+            visible={true}
           />
-        )}
-        {isLoading && (
-          <div className="Loader">
-            <Bars
-              height="80"
-              width="80"
-              color="#4fa94d"
-              ariaLabel="bars-loading"
-              wrapperStyle={{}}
-              wrapperClass=""
-              visible={true}
-            />
-          </div>
-        )}
-        <ToastContainer autoClose={3000} />
-      </>
-    );
-  }
-}
+        </div>
+      )}
+      <ToastContainer autoClose={3000} />
+    </>
+  );
+};

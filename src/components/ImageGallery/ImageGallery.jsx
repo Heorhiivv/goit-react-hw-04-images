@@ -1,43 +1,36 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import { ImageGalleryItem } from '../ImageGalleryItem/ImageGalleryItem';
-import Modal from '../Modal/Modal';
-class ImageGallery extends Component {
-  state = {
-    largeImageURL: '',
-    alternative: '',
-  };
+import { Modal } from '../Modal/Modal';
 
-  handelOpenModal = (e, imageURL, tags) => {
+const ImageGallery = ({ images }) => {
+  const [largeImageURL, setLargeImageURL] = useState('');
+  const [alternative, setAlternative] = useState('');
+
+  const handelOpenModal = (e, imageURL, tags) => {
     if (e.currentTarget.nodeName === 'LI') {
-      this.setState({ largeImageURL: imageURL, alternative: tags });
+      setLargeImageURL(imageURL);
+      setAlternative(tags);
     }
   };
 
-  handelCloseModal = e => {
-    this.setState({ largeImageURL: null });
+  const handelCloseModal = e => {
+    setLargeImageURL(null);
   };
 
-  render() {
-    const gallery = this.props.images;
-    const { largeImageURL, alternative } = this.state;
-    return (
-      <>
-        {gallery.length > 0 && (
-          <ul className="ImageGallery">
-            <ImageGalleryItem
-              imagesList={gallery}
-              onClick={this.handelOpenModal}
-            />
-          </ul>
-        )}
-        {largeImageURL && (
-          <Modal onClose={this.handelCloseModal}>
-            <img src={largeImageURL} alt={alternative} />
-          </Modal>
-        )}
-      </>
-    );
-  }
-}
+  return (
+    <>
+      {images.length > 0 && (
+        <ul className="ImageGallery">
+          <ImageGalleryItem imagesList={images} onClick={handelOpenModal} />
+        </ul>
+      )}
+      {largeImageURL && (
+        <Modal onClose={handelCloseModal}>
+          <img src={largeImageURL} alt={alternative} />
+        </Modal>
+      )}
+    </>
+  );
+};
 
 export default ImageGallery;
